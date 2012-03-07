@@ -10,6 +10,8 @@ endif()
 find_package( Boost COMPONENTS graph )
 include_directories( ${Boost_INCLUDE_DIRS} )
 
+set(Boost_USE_MULTITHREADED ON)
+
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${ITKBGL_BINARY_DIR}/bin )
 
 include( CTest )
@@ -31,4 +33,21 @@ add_test( ShortestPath
   ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ShortestPath
   ${ITKBGL_SOURCE_DIR}/Data/Gourds.png
 )
+
+add_executable( MinCut MinCut.cxx )
+target_link_libraries( MinCut ${ITK_LIBRARIES} )
+
+add_test( MinCut
+  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MinCut
+  ${ITKBGL_SOURCE_DIR}/Data/Yinyang.png
+)
+
+#add_executable( KolmogorovMaxFlow KolmogorovMaxFlow.cxx )
+#target_link_libraries( KolmogorovMaxFlow ${ITK_LIBRARIES} )
+#
+#add_test( KolmogorovMaxFlow
+#  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/KolmogorovMaxFlow
+#  ${ITKBGL_SOURCE_DIR}/Data/Gourds.png
+#)
+
 
