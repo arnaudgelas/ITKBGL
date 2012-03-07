@@ -166,6 +166,11 @@ protected:
 
     NeighborhoodIteratorType neighIt( radius, this->m_Image, region );
 
+    NeighborhoodIteratorOffsetType zeroOffset;
+    zeroOffset.Fill( 0 );
+
+    neighIt.DeactivateOffset( zeroOffset );
+
     for( typename NeighborhoodIteratorOffsetContainerType::const_iterator it = m_OffsetList.begin();
          it != m_OffsetList.end(); ++it )
       {

@@ -25,8 +25,46 @@ int main( int argc, char* argv[] )
   ImageType::Pointer input = reader->GetOutput();
 
   typedef itk::ImageBoostGraphAdaptor< ImageType > AdaptorType;
+
+  std::vector< AdaptorType::NeighborhoodIteratorOffsetType > offset( 8 );
+
+  size_t k = 0;
+  offset[k][0] = -1;
+  offset[k][1] = -1;
+  k++;
+
+  offset[k][0] = -1;
+  offset[k][1] = 0;
+  k++;
+
+  offset[k][0] = -1;
+  offset[k][1] = 1;
+  k++;
+
+  offset[k][0] = 0;
+  offset[k][1] = -1;
+  k++;
+
+  offset[k][0] = 0;
+  offset[k][1] = 1;
+  k++;
+
+  offset[k][0] = 1;
+  offset[k][1] = -1;
+  k++;
+
+  offset[k][0] = 1;
+  offset[k][1] = 0;
+  k++;
+
+  offset[k][0] = 1;
+  offset[k][1] = 1;
+  k++;
+
+
   AdaptorType::Pointer adaptor = AdaptorType::New();
   adaptor->SetInput( input );
+  adaptor->SetNeighbors( offset );
   adaptor->Update();
 
   std::cout << "Graph constructed" << std::endl;
@@ -65,8 +103,8 @@ int main( int argc, char* argv[] )
 
   VertexDescriptorType v = v2;                      // We want to start at the destination and work our way back to the source
   for( VertexDescriptorType u = Predecessors[ v ];  // Start by setting 'u' to the destintaion node's predecessor
-       u != v1;                                     // Keep tracking the path until we get to the source
-       u = v, u = Predecessors[ v ] )               // Set the current vertex to the current predecessor, and the predecessor to one level up
+       u != v;                                     // Keep tracking the path until we get to the source
+       v = u, u = Predecessors[ v ] )               // Set the current vertex to the current predecessor, and the predecessor to one level up
     {
     std::pair<boost::graph_traits< GraphType >::edge_descriptor, bool> edgePair = edge( u, v, graph );
     path.push_back( edgePair.first );
@@ -79,8 +117,11 @@ int main( int argc, char* argv[] )
        pathIterator != path.rend();
        ++pathIterator )
     {
-    std::cout << source(*pathIterator, graph) << " -> "
-              << target(*pathIterator, graph)
+    VertexDescriptorType edge_source      = source( *pathIterator, graph );
+    VertexDescriptorType edge_destination = source( *pathIterator, graph );
+
+    std::cout << adaptor->GetIndexFromVertex( edge_source ) << " -> "
+              << adaptor->GetIndexFromVertex( edge_destination )
               << " = " << get( boost::edge_weight, graph, *pathIterator ) << std::endl;
     }
 
