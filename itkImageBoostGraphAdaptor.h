@@ -75,7 +75,7 @@ public:
   void SetNeighbors( const T & iOffsets )
     {
     typename T::const_iterator begin  = iOffsets.begin();
-    typename T::const_iterator end    = iOffsets.begin();
+    typename T::const_iterator end    = iOffsets.end();
 
     this->SetNeighbors( begin, end );
     }
@@ -87,7 +87,7 @@ public:
 
     while( it != iEnd )
       {
-      this->m_OffsetList.insert( *it );
+      this->m_OffsetList.push_back( *it );
       ++it;
       }
     }
@@ -129,7 +129,7 @@ protected:
   InputImageSizeType      m_Size;
   MetricType              m_Metric;
 
-  typedef std::set< NeighborhoodIteratorOffsetType > NeighborhoodIteratorOffsetContainerType;
+  typedef std::list< NeighborhoodIteratorOffsetType > NeighborhoodIteratorOffsetContainerType;
   NeighborhoodIteratorOffsetContainerType m_OffsetList;
 
   void GenerateData()
@@ -196,9 +196,14 @@ protected:
 
           EdgeDescriptorType e;
 
-          bool inserted;
-          boost::tie(e, inserted) = add_edge( u, v, this->m_Graph );
-          weightmap[ e ] = this->m_Metric.Evaluate( this->m_Image, index, neighIndex );
+          std::pair< EdgeDescriptorType, bool> retrievedEdge = edge( u, v, this->m_Graph );
+
+          if( !retrievedEdge.second )
+            {
+            bool inserted = false;
+            boost::tie(e, inserted) = add_edge( u, v, this->m_Graph );
+            weightmap[ e ] = this->m_Metric.Evaluate( this->m_Image, index, neighIndex );
+            }
           }
         }
       }
