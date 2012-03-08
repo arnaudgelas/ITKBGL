@@ -18,11 +18,27 @@ include( CTest )
 add_executable( header header.cxx )
 add_test( header ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/header )
 
-add_executable( example example.cxx )
-target_link_libraries( example ${ITK_LIBRARIES} )
+add_executable( Undirected Undirected.cxx )
+target_link_libraries( Undirected ${ITK_LIBRARIES} )
 
-add_test( example
-  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/example
+add_test( Undirected
+  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Undirected
+  ${ITKBGL_SOURCE_DIR}/Data/Gourds.png
+)
+
+add_executable( Directed Directed.cxx )
+target_link_libraries( Directed ${ITK_LIBRARIES} )
+
+add_test( Directed
+  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Directed
+  ${ITKBGL_SOURCE_DIR}/Data/Gourds.png
+)
+
+add_executable( Bidirectional Bidirectional.cxx )
+target_link_libraries( Bidirectional ${ITK_LIBRARIES} )
+
+add_test( Bidirectional
+  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Bidirectional
   ${ITKBGL_SOURCE_DIR}/Data/Gourds.png
 )
 
@@ -37,10 +53,10 @@ add_test( ShortestPath
 add_executable( MinCut MinCut.cxx )
 target_link_libraries( MinCut ${ITK_LIBRARIES} )
 
-add_test( MinCut
-  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MinCut
-  ${ITKBGL_SOURCE_DIR}/Data/Yinyang.png
-)
+#add_test( MinCut
+#  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/MinCut
+#  ${ITKBGL_SOURCE_DIR}/Data/Yinyang.png
+#)
 
 #add_executable( KolmogorovMaxFlow KolmogorovMaxFlow.cxx )
 #target_link_libraries( KolmogorovMaxFlow ${ITK_LIBRARIES} )

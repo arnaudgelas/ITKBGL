@@ -25,7 +25,13 @@ int main( int argc, char* argv[] )
 
   ImageType::Pointer input = reader->GetOutput();
 
-  typedef itk::ImageBoostGraphAdaptor< ImageType > AdaptorType;
+  typedef double                                                              WeightType;
+
+  typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS,
+    boost::no_property, boost::property< boost::edge_weight_t, WeightType > > GraphType;
+
+  typedef itk::IndexMetric< ImageType, WeightType >                           MetricType;
+  typedef itk::ImageBoostGraphAdaptor< ImageType, GraphType, MetricType >     AdaptorType;
 
   std::vector< AdaptorType::NeighborhoodIteratorOffsetType > offset( 4 );
 
@@ -57,7 +63,7 @@ int main( int argc, char* argv[] )
   GraphType graph = adaptor->GetOutput();
 
   typedef AdaptorType::VertexDescriptorType   VertexDescriptorType;
-  typedef AdaptorType::WeightType             WeightType;
+  typedef AdaptorType::EdgeValueType          WeightType;
 
   // define a property map, `parities`, that will store a boolean value for each vertex.
   // Vertices that have the same parity after `stoer_wagner_min_cut` runs are on the same side of the min-cut.
