@@ -140,7 +140,8 @@ protected:
   typedef std::list< NeighborhoodIteratorOffsetType > NeighborhoodIteratorOffsetContainerType;
   NeighborhoodIteratorOffsetContainerType m_OffsetList;
 
-  void GenerateNeighborhoodIterator( InputImageRegionType& oRegion, NeighborhoodIteratorType& oIt )
+  void GenerateNeighborhoodIterator( InputImageRegionType& oRegion,
+                                     NeighborhoodIteratorType& oIt )
     {
     if( !this->m_Image )
       {
@@ -308,8 +309,8 @@ template< class TInputImage,
 class ImageBoostGraphAdaptor<
     TInputImage,
     TGraph,
-    boost::is_directed_graph< TGraph >,
-    TMetric > :
+    TMetric,
+    boost::directedS > :
   public ImageBoostGraphAdaptorBase<
     TInputImage,
     TGraph,
@@ -363,8 +364,111 @@ protected:
     WeightMapType weightmap = get( boost::edge_weight, this->m_Graph );
 
     InputImageRegionType region;
+    NeighborhoodIteratorType neighIt;
 
-    NeighborhoodIteratorType neighIt = this->GenerateNeighborhoodIterator( region );
+    this->GenerateNeighborhoodIterator( region, neighIt );
+
+    for( neighIt.GoToBegin(); !neighIt.IsAtEnd(); ++neighIt )
+      {
+      InputIndexType index = neighIt.GetIndex();
+      bool inside = false;
+
+      VertexDescriptorType u = this->GetVertexFromIndex( index, inside );
+
+//      itkAssertInDebugAndIgnoreInReleaseMacro( inside );
+
+      for( typename NeighborhoodIteratorType::ConstIterator internalIt = neighIt.Begin();
+           !internalIt.IsAtEnd(); ++internalIt )
+        {
+        unsigned int i = internalIt.GetNeighborhoodIndex();
+        InputIndexType neighIndex = neighIt.GetIndex( i );
+
+        bool IsInBounds = region.IsInside( neighIndex );
+
+        if( IsInBounds && index != neighIndex )
+          {
+          VertexDescriptorType v = this->GetVertexFromIndex( neighIndex, inside );
+
+          EdgeDescriptorType e;
+
+          bool inserted = false;
+          boost::tie(e, inserted) = add_edge( u, v, this->m_Graph );
+          weightmap[ e ] = this->m_Metric.Evaluate( this->m_Image, index, neighIndex );
+          }
+        }
+      }
+    }
+
+private:
+  ImageBoostGraphAdaptor( const Self& );
+  void operator = ( const Self& );
+};
+
+
+template< class TInputImage,
+          class TGraph,
+          class TMetric > // Metric< TInputImage, typename TGraph::edge_property_type::value_type >
+class ImageBoostGraphAdaptor<
+    TInputImage,
+    TGraph,
+    TMetric,
+    boost::bidirectionalS > :
+  public ImageBoostGraphAdaptorBase<
+    TInputImage,
+    TGraph,
+    TMetric >
+{
+public:
+  typedef TGraph                                                        GraphType;
+
+  typedef ImageBoostGraphAdaptor                                        Self;
+  typedef SmartPointer< Self >                                          Pointer;
+  typedef SmartPointer< const Self >                                    ConstPointer;
+  typedef ImageBoostGraphAdaptorBase< TInputImage, GraphType, TMetric > Superclass;
+
+  /** Method for creation through object factory */
+  itkNewMacro( Self );
+
+  itkTypeMacro( ImageBoostGraphAdaptor, ImageBoostGraphAdaptorBase );
+
+  typedef typename Superclass::InputImageType           InputImageType;
+  typedef typename Superclass::InputImageConstPointer   InputImageConstPointer;
+  typedef typename Superclass::InputImageRegionType     InputImageRegionType;
+  typedef typename Superclass::InputImageSizeType       InputImageSizeType;
+  typedef typename Superclass::InputImageSizeValueType  InputImageSizeValueType;
+  typedef typename Superclass::InputIndexType           InputIndexType;
+
+  typedef typename Superclass::NeighborhoodIteratorType       NeighborhoodIteratorType;
+  typedef typename Superclass::NeighborhoodIteratorOffsetType NeighborhoodIteratorOffsetType;
+
+  typedef typename Superclass::MetricType MetricType;
+
+  typedef typename Superclass::GraphDirectedType    GraphDirectedType;
+
+  typedef typename Superclass::GraphTraits          GraphTraits;
+  typedef typename Superclass::VertexDescriptorType VertexDescriptorType;
+  typedef typename Superclass::EdgeDescriptorType   EdgeDescriptorType;
+
+  typedef typename Superclass::VertexPropertyType VertexPropertyType;
+  typedef typename Superclass::VertexValueType    VertexValueType;
+
+  typedef typename Superclass::EdgePropertyType   EdgePropertyType;
+  typedef typename Superclass::EdgeValueType      EdgeValueType;
+
+  typedef typename Superclass::WeightMapType      WeightMapType;
+
+protected:
+  ImageBoostGraphAdaptor() {}
+  ~ImageBoostGraphAdaptor() {}
+
+  void GenerateData()
+    {
+    WeightMapType weightmap = get( boost::edge_weight, this->m_Graph );
+
+    InputImageRegionType region;
+    NeighborhoodIteratorType neighIt;
+
+    this->GenerateNeighborhoodIterator( region, neighIt );
 
     for( neighIt.GoToBegin(); !neighIt.IsAtEnd(); ++neighIt )
       {
