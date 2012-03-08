@@ -24,7 +24,13 @@ int main( int argc, char* argv[] )
 
   ImageType::Pointer input = reader->GetOutput();
 
-  typedef itk::ImageBoostGraphAdaptor< ImageType > AdaptorType;
+  typedef double                                                              WeightType;
+
+  typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS,
+    boost::no_property, boost::property< boost::edge_weight_t, WeightType > > GraphType;
+
+  typedef itk::IndexMetric< ImageType, WeightType >                           MetricType;
+  typedef itk::ImageBoostGraphAdaptor< ImageType, GraphType, MetricType >     AdaptorType;
 
   std::vector< AdaptorType::NeighborhoodIteratorOffsetType > offset( 8 );
 
@@ -80,7 +86,6 @@ int main( int argc, char* argv[] )
   idx2[1] = 120;
 
   typedef AdaptorType::VertexDescriptorType   VertexDescriptorType;
-  typedef AdaptorType::WeightType             WeightType;
 
   bool inside = false;
   VertexDescriptorType v1 = adaptor->GetVertexFromIndex( idx1, inside );
@@ -112,22 +117,34 @@ int main( int argc, char* argv[] )
 
   // Write shortest path
   std::cout << "Shortest path:" << std::endl;
-  double totalDistance = 0;
+  double totalDistance = 0.;
   for( PathType::reverse_iterator pathIterator = path.rbegin();
        pathIterator != path.rend();
        ++pathIterator )
     {
     VertexDescriptorType edge_source      = source( *pathIterator, graph );
-    VertexDescriptorType edge_destination = source( *pathIterator, graph );
+    VertexDescriptorType edge_destination = target( *pathIterator, graph );
+
+    if( edge_source == edge_destination )
+      {
+      return EXIT_FAILURE;
+      }
+
+    double w = get( boost::edge_weight, graph, *pathIterator );
+    totalDistance += w;
 
     std::cout << adaptor->GetIndexFromVertex( edge_source ) << " -> "
               << adaptor->GetIndexFromVertex( edge_destination )
-              << " = " << get( boost::edge_weight, graph, *pathIterator ) << std::endl;
+              << " = " << w << std::endl;
     }
 
   std::cout << std::endl;
   std::cout << "Distance: " << Distances[v2] << std::endl;
 
+  if( Distances[v2] != totalDistance )
+    {
+    return EXIT_FAILURE;
+    }
 
   return EXIT_SUCCESS;
 }

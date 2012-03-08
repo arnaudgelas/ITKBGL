@@ -140,7 +140,7 @@ protected:
   typedef std::list< NeighborhoodIteratorOffsetType > NeighborhoodIteratorOffsetContainerType;
   NeighborhoodIteratorOffsetContainerType m_OffsetList;
 
-  NeighborhoodIteratorType GenerateNeighborhoodIterator( InputImageRegionType& oRegion )
+  void GenerateNeighborhoodIterator( InputImageRegionType& oRegion, NeighborhoodIteratorType& oIt )
     {
     if( !this->m_Image )
       {
@@ -168,20 +168,13 @@ protected:
         }
       }
 
-    NeighborhoodIteratorType neighIt( radius, this->m_Image, oRegion );
-
-    NeighborhoodIteratorOffsetType zeroOffset;
-    zeroOffset.Fill( 0 );
-
-    neighIt.DeactivateOffset( zeroOffset );
+    oIt = NeighborhoodIteratorType( radius, this->m_Image, oRegion );
 
     for( typename NeighborhoodIteratorOffsetContainerType::const_iterator it = m_OffsetList.begin();
          it != m_OffsetList.end(); ++it )
       {
-      neighIt.ActivateOffset( *it );
+      oIt.ActivateOffset( *it );
       }
-
-    return neighIt;
     }
 
   virtual void GenerateData() = 0;
@@ -192,50 +185,29 @@ private:
 };
 
 template< class TInputImage,
-          class TOutEdgeListS,
-          class TVertexListS,
-          class TDirectedS,
-          class TVertexProperty,
-          class EdgeProperty,
-          class GraphProperty,
-          class EdgeListS,
-          class TMetric >
+          class TGraph,
+          class TMetric,
+          class TDirected = typename TGraph::directed_selector >
 class ImageBoostGraphAdaptor
   {};
 
-
-
 template< class TInputImage,
-          class TOutEdgeListS,
-          class TVertexListS,
-          class TVertexProperty,
-          class TEdgeProperty,
-          class TGraphProperty,
-          class TEdgeListS,
+          class TGraph,
           class TMetric > // Metric< TInputImage, typename TGraph::edge_property_type::value_type >
 class ImageBoostGraphAdaptor<
     TInputImage,
-    TOutEdgeListS,
-    TVertexListS,
-    boost::undirectedS,
-    TVertexProperty,
-    TEdgeProperty,
-    TGraphProperty,
-    TEdgeListS,
-    TMetric >
+    TGraph,
+    TMetric,
+    boost::undirectedS >
     :
   public ImageBoostGraphAdaptorBase<
     TInputImage,
-    boost::adjacency_list< TOutEdgeListS, TVertexListS, boost::undirectedS,
-                           TVertexProperty, TEdgeProperty, TGraphProperty,
-                           TEdgeListS >,
+    TGraph,
     TMetric
     >
 {
 public:
-  typedef boost::adjacency_list< TOutEdgeListS, TVertexListS, boost::undirectedS,
-    TVertexProperty, TEdgeProperty, TGraphProperty,
-    TEdgeListS >                                                        GraphType;
+  typedef TGraph                                                        GraphType;
 
   typedef ImageBoostGraphAdaptor                                        Self;
   typedef SmartPointer< Self >                                          Pointer;
@@ -283,7 +255,9 @@ protected:
 
     InputImageRegionType region;
 
-    NeighborhoodIteratorType neighIt = this->GenerateNeighborhoodIterator( region );
+    NeighborhoodIteratorType neighIt;
+
+    this->GenerateNeighborhoodIterator( region, neighIt );
 
     for( neighIt.GoToBegin(); !neighIt.IsAtEnd(); ++neighIt )
       {
@@ -329,35 +303,20 @@ private:
 
 
 template< class TInputImage,
-          class TOutEdgeListS,
-          class TVertexListS,
-          class TVertexProperty,
-          class TEdgeProperty,
-          class TGraphProperty,
-          class TEdgeListS,
+          class TGraph,
           class TMetric > // Metric< TInputImage, typename TGraph::edge_property_type::value_type >
 class ImageBoostGraphAdaptor<
     TInputImage,
-    TOutEdgeListS,
-    TVertexListS,
-    boost::directedS,
-    TVertexProperty,
-    TEdgeProperty,
-    TGraphProperty,
-    TEdgeListS,
+    TGraph,
+    boost::is_directed_graph< TGraph >,
     TMetric > :
   public ImageBoostGraphAdaptorBase<
     TInputImage,
-    boost::adjacency_list< TOutEdgeListS, TVertexListS, boost::directedS,
-                           TVertexProperty, TEdgeProperty, TGraphProperty,
-                           TEdgeListS >,
-    TMetric
-    >
+    TGraph,
+    TMetric >
 {
 public:
-  typedef boost::adjacency_list< TOutEdgeListS, TVertexListS, boost::directedS,
-    TVertexProperty, TEdgeProperty, TGraphProperty,
-    TEdgeListS >                                                        GraphType;
+  typedef TGraph                                                        GraphType;
 
   typedef ImageBoostGraphAdaptor                                        Self;
   typedef SmartPointer< Self >                                          Pointer;

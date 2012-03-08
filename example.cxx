@@ -22,7 +22,13 @@ int main( int argc, char* argv[] )
 
   ImageType::Pointer input = reader->GetOutput();
 
-  typedef itk::ImageBoostGraphAdaptor< ImageType > AdaptorType;
+  typedef double                                                              WeightType;
+
+  typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS,
+    boost::no_property, boost::property< boost::edge_weight_t, WeightType > > GraphType;
+
+  typedef itk::IndexMetric< ImageType, WeightType >                           MetricType;
+  typedef itk::ImageBoostGraphAdaptor< ImageType, GraphType, MetricType >     AdaptorType;
   AdaptorType::Pointer adaptor = AdaptorType::New();
   adaptor->SetInput( input );
 
@@ -94,6 +100,15 @@ int main( int argc, char* argv[] )
         std::cout << "degree[ " << idx << " ] = " << deg << std::endl;
         return EXIT_FAILURE;
         }
+      }
+    bool found = false;
+    AdaptorType::EdgeDescriptorType e;
+    boost::tie( e, found ) = boost::edge( v, v, graph );
+
+    if( found )
+      {
+      std::cout << v << std::endl;
+      return EXIT_FAILURE;
       }
     ++it;
     }
