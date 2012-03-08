@@ -6,7 +6,7 @@
 #include <boost/graph/dijkstra_shortest_paths.hpp>
 
 int main( int argc, char* argv[] )
-  {
+{
   if( argc != 2 )
     {
     std::cerr << argv[0] << " <InputImage>" << std::endl;
@@ -130,4 +130,4 @@ int main( int argc, char* argv[] )
 
 
   return EXIT_SUCCESS;
-  }
+}

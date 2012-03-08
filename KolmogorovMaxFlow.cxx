@@ -6,7 +6,7 @@
 #include <boost/graph/boykov_kolmogorov_max_flow.hpp>
 
 int main( int argc, char* argv[] )
-  {
+{
   if( argc != 2 )
     {
     std::cerr << argv[0] << " <InputImage>" << std::endl;
@@ -81,5 +81,5 @@ int main( int argc, char* argv[] )
   flow = boykov_kolmogorov_max_flow(graph, s, t); // a list of sources will be returned in s, and a list of sinks will be returned in t
 
   return EXIT_SUCCESS;
-  }
+}
 
