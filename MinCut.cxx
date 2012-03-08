@@ -25,7 +25,13 @@ int main( int argc, char* argv[] )
 
   ImageType::Pointer input = reader->GetOutput();
 
-  typedef itk::ImageBoostGraphAdaptor< ImageType > AdaptorType;
+  typedef double                                                              WeightType;
+
+  typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS,
+    boost::no_property, boost::property< boost::edge_weight_t, WeightType > > GraphType;
+
+  typedef itk::IndexMetric< ImageType, WeightType >                           MetricType;
+  typedef itk::ImageBoostGraphAdaptor< ImageType, GraphType, MetricType >     AdaptorType;
 
   std::vector< AdaptorType::NeighborhoodIteratorOffsetType > offset( 4 );
 
